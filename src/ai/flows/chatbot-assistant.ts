@@ -19,46 +19,63 @@ export type ChatbotAssistantInput = z.infer<typeof ChatbotAssistantInputSchema>;
 
 const ChatbotAssistantOutputSchema = z.object({
   response: z.string().describe('The chatbot response.'),
-  shouldEscalate: z.boolean().describe('Whether the chatbot should escalate to a live person.'),
+  shouldEscalate: z
+    .boolean()
+    .describe('Whether the chatbot should escalate to a live person.'),
 });
 export type ChatbotAssistantOutput = z.infer<typeof ChatbotAssistantOutputSchema>;
 
-export async function chatbotAssistant(input: ChatbotAssistantInput): Promise<ChatbotAssistantOutput> {
+export async function chatbotAssistant(
+  input: ChatbotAssistantInput
+): Promise<ChatbotAssistantOutput> {
   return chatbotAssistantFlow(input);
 }
 
-const answerQuery = ai.defineTool({
-  name: 'answerQuery',
-  description: 'Answers a user query about wedding packages and scheduling at the restaurant.',
-  inputSchema: z.object({
-    query: z.string().describe('The user query.'),
-  }),
-  outputSchema: z.string().describe('The answer to the user query.'),
-}, async (input) => {
-  // In a real application, this would fetch the answer from a database or CMS.
-  // For this example, we'll just return a canned response.
-  if (input.query.toLowerCase().includes('79 million')) {
-    return `The "Dream Wedding" package for 200 guests is 79 million VND. It includes the venue, 8-course meal, drinks, decoration, MC, sound system, wedding cake, and a honeymoon night at a 5-star hotel.`
-  } else if (input.query.toLowerCase().includes('schedule')) {
-    return `Please contact us to check date availability.`
-  } else {
-    return `I am sorry, I don't have information about that. Please contact a representative for further assistance.`
+const answerQuery = ai.defineTool(
+  {
+    name: 'answerQuery',
+    description:
+      'Answers a user query about wedding packages and scheduling at the restaurant.',
+    inputSchema: z.object({
+      query: z.string().describe('The user query.'),
+    }),
+    outputSchema: z.string().describe('The answer to the user query.'),
+  },
+  async (input) => {
+    // In a real application, this would fetch the answer from a database or CMS.
+    // For this example, we'll just return a canned response.
+    if (input.query.toLowerCase().includes('79 million')) {
+      return `The "Dream Wedding" package for 200 guests is 79 million VND. It includes the venue, 8-course meal, drinks, decoration, MC, sound system, wedding cake, and a honeymoon night at a 5-star hotel.`;
+    } else if (input.query.toLowerCase().includes('schedule')) {
+      return `Please contact us to check date availability.`;
+    } else {
+      return `I am sorry, I don't have information about that. Please contact a representative for further assistance.`;
+    }
   }
-});
+);
 
-const shouldEscalateTool = ai.defineTool({
-  name: 'shouldEscalate',
-  description: 'Determines whether the chatbot should escalate the conversation to a live person.',
-  inputSchema: z.object({
-    query: z.string().describe('The user query.'),
-  }),
-  outputSchema: z.boolean().describe('Whether the chatbot should escalate to a live person.'),
-}, async (input) => {
-  // In a real application, this would use a more sophisticated algorithm to determine
-  // whether to escalate the conversation.
-  // For this example, we'll escalate if the query contains the word "escalate".
-  return input.query.toLowerCase().includes('escalate') || input.query.toLowerCase().includes('representative');
-});
+const shouldEscalateTool = ai.defineTool(
+  {
+    name: 'shouldEscalate',
+    description:
+      'Determines whether the chatbot should escalate the conversation to a live person.',
+    inputSchema: z.object({
+      query: z.string().describe('The user query.'),
+    }),
+    outputSchema: z
+      .boolean()
+      .describe('Whether the chatbot should escalate to a live person.'),
+  },
+  async (input) => {
+    // In a real application, this would use a more sophisticated algorithm to determine
+    // whether to escalate the conversation.
+    return (
+      input.query.toLowerCase().includes('escalate') ||
+      input.query.toLowerCase().includes('representative') ||
+      input.query.toLowerCase().includes('tư vấn viên')
+    );
+  }
+);
 
 const chatbotAssistantFlow = ai.defineFlow(
   {
@@ -68,50 +85,26 @@ const chatbotAssistantFlow = ai.defineFlow(
   },
   async (input) => {
     const llmResponse = await ai.generate({
-      prompt: `You are a chatbot assistant for a wedding venue. Use the available tools to answer the user query. If you cannot answer the query, or if the shouldEscalate tool returns true, indicate that the conversation should be escalated to a live person. 
+      prompt: `You are a chatbot assistant for a wedding venue. Your primary goal is to answer user questions using the provided tools.
+
+- Use the 'answerQuery' tool to respond to questions about packages and services.
+- Use the 'shouldEscalate' tool to determine if the conversation needs to be handed off to a human.
+- If the 'shouldEscalate' tool returns 'true', your final response should be "A representative will be with you shortly." and you must set the 'shouldEscalate' output field to true.
+- If you cannot answer the query with the available tools, respond with "I'm not sure how to handle that. Would you like to speak to a representative?" and set 'shouldEscalate' to true.
 
 User query: {{{query}}}`,
       tools: [answerQuery, shouldEscalateTool],
-      model: 'googleai/gemini-2.0-flash',
+      model: 'googleai/gemini-pro',
+      output: {
+        schema: ChatbotAssistantOutputSchema,
+      },
     });
 
-    const choice = llmResponse.choices[0];
-    const textResponse = choice.message.text;
-
-    if (textResponse) {
-        const should_Escalate = await shouldEscalateTool({
-            query: input.query
-        });
-        return {
-            response: textResponse,
-            shouldEscalate: should_Escalate
-        };
-    }
-    
-    const toolResponse = choice.message.toolRequest;
-    if (toolResponse) {
-        if (toolResponse.name === 'answerQuery') {
-             const answer = await answerQuery(toolResponse.input);
-              const should_Escalate = await shouldEscalateTool({
-                query: input.query
-            });
-             return {
-                 response: answer,
-                 shouldEscalate: should_Escalate
-             }
-        }
-         if (toolResponse.name === 'shouldEscalate') {
-             const should_Escalate = await shouldEscalateTool(toolResponse.input);
-             return {
-                 response: "A representative will be with you shortly.",
-                 shouldEscalate: should_Escalate
-             }
-        }
+    const response = llmResponse.output;
+    if (!response) {
+      throw new Error('No output from AI');
     }
 
-    return {
-      response: "I'm not sure how to handle that. Would you like to speak to a representative?",
-      shouldEscalate: true,
-    };
+    return response;
   }
 );
