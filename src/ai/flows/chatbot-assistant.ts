@@ -38,7 +38,7 @@ const answerQuery = ai.defineTool({
   // In a real application, this would fetch the answer from a database or CMS.
   // For this example, we'll just return a canned response.
   if (input.query.toLowerCase().includes('79 million')) {
-    return `The \"Dream Wedding\" package for 200 guests is 79 million VND. It includes the venue, 8-course meal, drinks, decoration, MC, sound system, wedding cake, and a honeymoon night at a 5-star hotel.`
+    return `The "Dream Wedding" package for 200 guests is 79 million VND. It includes the venue, 8-course meal, drinks, decoration, MC, sound system, wedding cake, and a honeymoon night at a 5-star hotel.`
   } else if (input.query.toLowerCase().includes('schedule')) {
     return `Please contact us to check date availability.`
   } else {
@@ -66,27 +66,36 @@ const chatbotAssistantFlow = ai.defineFlow(
     inputSchema: ChatbotAssistantInputSchema,
     outputSchema: ChatbotAssistantOutputSchema,
   },
-  async input => {
-    const {
-      output
-    } = await ai.generate({
+  async (input) => {
+    const { output } = await ai.generate({
       prompt: `You are a chatbot assistant for a wedding venue. Use the available tools to answer the user query. If you cannot answer the query, or if the shouldEscalate tool returns true, indicate that the conversation should be escalated to a live person. 
 
 User query: {{{query}}}`,
       tools: [answerQuery, shouldEscalate],
-      model: 'googleai/gemini-2.0-flash'
+      model: 'googleai/gemini-2.0-flash',
     });
-    
+
     if (!output) {
       throw new Error('No output from AI');
     }
 
+    const textResponse = output.text;
+    if (!textResponse) {
+      // If we didn't get a text response, it's likely because the model wants to call a tool.
+      // We'll just return an escalation message in this case for simplicity.
+       const should_Escalate = await shouldEscalate({ query: input.query });
+       return {
+         response: "I'm not sure how to handle that. Would you like to speak to a representative?",
+         shouldEscalate: should_Escalate,
+       };
+    }
+    
     let should_Escalate = await shouldEscalate({
         query: input.query
     });
 
     return {
-      response: output.message.content[0].text!,
+      response: textResponse,
       shouldEscalate: should_Escalate,
     };
   }
