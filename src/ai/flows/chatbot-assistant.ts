@@ -57,7 +57,7 @@ const shouldEscalate = ai.defineTool({
   // In a real application, this would use a more sophisticated algorithm to determine
   // whether to escalate the conversation.
   // For this example, we'll escalate if the query contains the word "escalate".
-  return input.query.toLowerCase().includes('escalate');
+  return input.query.toLowerCase().includes('escalate') || input.query.toLowerCase().includes('representative');
 });
 
 const chatbotAssistantFlow = ai.defineFlow(
@@ -68,20 +68,25 @@ const chatbotAssistantFlow = ai.defineFlow(
   },
   async input => {
     const {
-      response
+      output
     } = await ai.generate({
       prompt: `You are a chatbot assistant for a wedding venue. Use the available tools to answer the user query. If you cannot answer the query, or if the shouldEscalate tool returns true, indicate that the conversation should be escalated to a live person. 
 
 User query: {{{query}}}`,
       tools: [answerQuery, shouldEscalate],
+      model: 'googleai/gemini-2.0-flash'
     });
+    
+    if (!output) {
+      throw new Error('No output from AI');
+    }
 
     let should_Escalate = await shouldEscalate({
         query: input.query
     });
 
     return {
-      response: response.text,
+      response: output.message.content[0].text!,
       shouldEscalate: should_Escalate,
     };
   }
