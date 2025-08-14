@@ -67,7 +67,7 @@ const chatbotAssistantFlow = ai.defineFlow(
     outputSchema: ChatbotAssistantOutputSchema,
   },
   async (input) => {
-    const { output } = await ai.generate({
+    const llmResponse = await ai.generate({
       prompt: `You are a chatbot assistant for a wedding venue. Use the available tools to answer the user query. If you cannot answer the query, or if the shouldEscalate tool returns true, indicate that the conversation should be escalated to a live person. 
 
 User query: {{{query}}}`,
@@ -75,19 +75,9 @@ User query: {{{query}}}`,
       model: 'googleai/gemini-2.0-flash',
     });
 
-    if (!output) {
+    const response = llmResponse.output();
+    if (!response) {
       throw new Error('No output from AI');
-    }
-
-    const textResponse = output.text;
-    if (!textResponse) {
-      // If we didn't get a text response, it's likely because the model wants to call a tool.
-      // We'll just return an escalation message in this case for simplicity.
-       const should_Escalate = await shouldEscalate({ query: input.query });
-       return {
-         response: "I'm not sure how to handle that. Would you like to speak to a representative?",
-         shouldEscalate: should_Escalate,
-       };
     }
     
     let should_Escalate = await shouldEscalate({
@@ -95,7 +85,7 @@ User query: {{{query}}}`,
     });
 
     return {
-      response: textResponse,
+      response: response.text ?? "I'm not sure how to handle that. Would you like to speak to a representative?",
       shouldEscalate: should_Escalate,
     };
   }
