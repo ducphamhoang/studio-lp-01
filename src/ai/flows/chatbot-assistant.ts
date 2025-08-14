@@ -46,7 +46,7 @@ const answerQuery = ai.defineTool({
   }
 });
 
-const shouldEscalate = ai.defineTool({
+const shouldEscalateTool = ai.defineTool({
   name: 'shouldEscalate',
   description: 'Determines whether the chatbot should escalate the conversation to a live person.',
   inputSchema: z.object({
@@ -71,22 +71,47 @@ const chatbotAssistantFlow = ai.defineFlow(
       prompt: `You are a chatbot assistant for a wedding venue. Use the available tools to answer the user query. If you cannot answer the query, or if the shouldEscalate tool returns true, indicate that the conversation should be escalated to a live person. 
 
 User query: {{{query}}}`,
-      tools: [answerQuery, shouldEscalate],
+      tools: [answerQuery, shouldEscalateTool],
       model: 'googleai/gemini-2.0-flash',
     });
 
-    const response = llmResponse.output;
-    if (!response) {
-      throw new Error('No output from AI');
+    const choice = llmResponse.choices[0];
+    const textResponse = choice.message.text;
+
+    if (textResponse) {
+        const should_Escalate = await shouldEscalateTool({
+            query: input.query
+        });
+        return {
+            response: textResponse,
+            shouldEscalate: should_Escalate
+        };
     }
     
-    let should_Escalate = await shouldEscalate({
-        query: input.query
-    });
+    const toolResponse = choice.message.toolRequest;
+    if (toolResponse) {
+        if (toolResponse.name === 'answerQuery') {
+             const answer = await answerQuery(toolResponse.input);
+              const should_Escalate = await shouldEscalateTool({
+                query: input.query
+            });
+             return {
+                 response: answer,
+                 shouldEscalate: should_Escalate
+             }
+        }
+         if (toolResponse.name === 'shouldEscalate') {
+             const should_Escalate = await shouldEscalateTool(toolResponse.input);
+             return {
+                 response: "A representative will be with you shortly.",
+                 shouldEscalate: should_Escalate
+             }
+        }
+    }
 
     return {
-      response: response.text ?? "I'm not sure how to handle that. Would you like to speak to a representative?",
-      shouldEscalate: should_Escalate,
+      response: "I'm not sure how to handle that. Would you like to speak to a representative?",
+      shouldEscalate: true,
     };
   }
 );
