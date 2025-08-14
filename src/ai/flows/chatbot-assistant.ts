@@ -75,7 +75,7 @@ User query: {{{query}}}`,
       model: 'googleai/gemini-2.0-flash',
     });
 
-    const response = llmResponse.output();
+    const response = llmResponse.output;
     if (!response) {
       throw new Error('No output from AI');
     }
