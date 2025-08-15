@@ -1,4 +1,5 @@
 // chatbot-assistant.ts
+
 'use server';
 
 /**
@@ -44,9 +45,10 @@ const answerQuery = ai.defineTool(
   async (input) => {
     // In a real application, this would fetch the answer from a database or CMS.
     // For this example, we'll just return a canned response.
-    if (input.query.toLowerCase().includes('79 million')) {
+    const query = input.query.toLowerCase();
+    if (query.includes('79 million') || query.includes('79 triệu')) {
       return `The "Dream Wedding" package for 200 guests is 79 million VND. It includes the venue, 8-course meal, drinks, decoration, MC, sound system, wedding cake, and a honeymoon night at a 5-star hotel.`;
-    } else if (input.query.toLowerCase().includes('schedule')) {
+    } else if (query.includes('schedule')) {
       return `Please contact us to check date availability.`;
     } else {
       return `I am sorry, I don't have information about that. Please contact a representative for further assistance.`;
@@ -94,7 +96,7 @@ const chatbotAssistantFlow = ai.defineFlow(
 
 User query: {{{query}}}`,
       tools: [answerQuery, shouldEscalateTool],
-      model: 'googleai/gemini-pro',
+      model: 'googleai/gemini-1.5-flash',
       output: {
         schema: ChatbotAssistantOutputSchema,
       },
