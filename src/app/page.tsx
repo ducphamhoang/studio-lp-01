@@ -133,7 +133,7 @@ export default function Home() {
       <section id="hero" className="relative h-screen flex items-center justify-center text-center text-white">
         <div className="absolute inset-0 bg-black/50 z-10"></div>
         <Image
-          src="https://placehold.co/1920x1080.png"
+          src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiAIu5tgiYM_zhuQTWA8rrYVHT7jxZjiX3WL5YZAi3M1dWoMQjw9CTU3ej5NIj1BqWSRrHpFAUP5QlQyR8-PDrkhJFE1rmH8X_eGvl02gJcZW-3mNQp8EMpkqBfFpxsu4IAoTxAaqOLaRlqN7Ascq4i4uGb49IZRq9-MLHIruaFNR_D-E9VpQ3skxiOkMcx/s1920/twh-hero-001.jpg"
           alt="Sảnh tiệc cưới lộng lẫy"
           layout="fill"
           objectFit="cover"
@@ -143,27 +143,31 @@ export default function Home() {
         />
         <div className="relative z-20 flex flex-col items-center p-4">
           <h1 className="font-headline text-4xl md:text-6xl lg:text-7xl font-bold leading-tight drop-shadow-lg">
-            ĐÁM CƯỚI TRONG MƠ CHO 200 KHÁCH
+            Không Gian Sang Trọng Cho Ngày Chung Đôi
           </h1>
-          <h2 className="font-headline text-4xl md:text-6xl lg:text-7xl font-bold text-primary drop-shadow-lg mt-2">
+        </div>
+      </section>
+
+      {/* Offer Section */}
+      <section id="offer" className="py-16 md:py-24 bg-card text-center">
+        <div className="container mx-auto px-4">
+          <h2 className="font-headline text-3xl md:text-4xl font-bold text-primary-foreground">Ưu Đãi Đặc Biệt: Đám Cưới 200 Khách</h2>
+          <p className="font-headline text-4xl md:text-6xl font-bold text-primary my-4">
             CHỈ VỚI 79.000.000 VNĐ
-          </h2>
-          <p className="mt-6 text-lg md:text-xl max-w-2xl">
-            Trọn gói ngày chung đôi tại không gian sang trọng bậc nhất Quận 12
+          </p>
+          <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+            Trọn gói ngày chung đôi tại không gian sang trọng bậc nhất Quận 12.
           </p>
           <a href="#form-dang-ky">
             <Button variant="accent" size="lg" className="mt-8 text-lg px-12 py-6 bg-accent text-accent-foreground hover:bg-accent/90">
               ĐĂNG KÝ THAM QUAN NGAY
             </Button>
           </a>
-          <p className="mt-4 text-sm opacity-80">
-            Ưu đãi đặc biệt chỉ dành cho 50 cặp đôi đăng ký đầu tiên trong tháng này!
-          </p>
         </div>
       </section>
 
       {/* Introduction Section */}
-      <section id="introduction" className="py-20 md:py-32 bg-card">
+      <section id="introduction" className="py-20 md:py-32 bg-background">
         <div className="container mx-auto px-4 grid md:grid-cols-2 gap-12 items-center">
           <div className="text-center md:text-left">
             <h2 className="font-headline text-3xl md:text-4xl font-bold text-primary-foreground">Viết Nên Câu Chuyện Tình Yêu Của Riêng Bạn</h2>
