@@ -32,6 +32,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { Icons } from '@/components/icons';
 import Chatbot from '@/components/chatbot';
+import { useState } from 'react';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Tên phải có ít nhất 2 ký tự." }),
@@ -41,6 +42,7 @@ const formSchema = z.object({
 });
 
 export default function Home() {
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -145,6 +147,14 @@ export default function Home() {
           <h1 className="font-headline text-4xl md:text-6xl lg:text-7xl font-bold leading-tight drop-shadow-lg">
             Không Gian Sang Trọng Cho Ngày Chung Đôi
           </h1>
+          <Button
+            variant="accent"
+            size="lg"
+            className="mt-8 text-lg px-8 py-6 bg-accent text-accent-foreground hover:bg-accent/90 md:hidden"
+            onClick={() => setIsChatOpen(true)}
+          >
+            Tư Vấn Ngay
+          </Button>
         </div>
       </section>
 
@@ -416,7 +426,7 @@ export default function Home() {
             <p className="text-sm text-gray-500">&copy; {new Date().getFullYear()} Dream Wedding Deals. All rights reserved.</p>
         </div>
       </footer>
-      <Chatbot />
+      <Chatbot openChat={isChatOpen} onOpenChange={setIsChatOpen} />
     </div>
   );
 }

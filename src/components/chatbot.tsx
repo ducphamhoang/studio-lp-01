@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { chatbotAssistant, ChatbotAssistantOutput } from "@/ai/flows/chatbot-assistant";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Message {
   role: "user" | "assistant";
@@ -23,28 +24,51 @@ const suggestedQuestions = [
     "Nối máy với tư vấn viên"
 ];
 
-export default function Chatbot() {
+interface ChatbotProps {
+  openChat?: boolean;
+  onOpenChange?: (isOpen: boolean) => void;
+}
+
+export default function Chatbot({ openChat, onOpenChange }: ChatbotProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!isOpen && messages.length === 0) {
-        setIsOpen(true);
-        setMessages([
-          {
-            role: "assistant",
-            content: "Chào bạn, Dream Wedding Deals có thể giúp gì cho kế hoạch ngày cưới của bạn không ạ?",
-          },
-        ]);
-      }
-    }, 10000); // 10 seconds
+  const isMobile = useIsMobile();
 
-    return () => clearTimeout(timer);
-  }, [isOpen, messages.length]);
+  useEffect(() => {
+    // If openChat prop is provided, use it to control the open state
+    if (openChat !== undefined) {
+      setIsOpen(openChat);
+      if (onOpenChange) {
+        onOpenChange(openChat);
+      }
+    }
+  }, [openChat, onOpenChange]);
+
+  useEffect(() => {
+    // Only auto-open on desktop, not on mobile
+    if (!isMobile) {
+      const timer = setTimeout(() => {
+        if (!isOpen && messages.length === 0) {
+          setIsOpen(true);
+          if (onOpenChange) {
+            onOpenChange(true);
+          }
+          setMessages([
+            {
+              role: "assistant",
+              content: "Chào bạn, Dream Wedding Deals có thể giúp gì cho kế hoạch ngày cưới của bạn không ạ?",
+            },
+          ]);
+        }
+      }, 10000); // 10 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, messages.length, isMobile, onOpenChange]);
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -96,7 +120,15 @@ export default function Chatbot() {
   return (
     <>
       <div className={cn("fixed bottom-4 right-4 z-50 transition-transform duration-300 ease-in-out", isOpen ? "translate-x-[calc(100%+2rem)]" : "translate-x-0")}>
-        <Button onClick={() => setIsOpen(true)} className="rounded-full w-16 h-16 shadow-lg bg-primary hover:bg-primary/90">
+        <Button
+          onClick={() => {
+            setIsOpen(true);
+            if (onOpenChange) {
+              onOpenChange(true);
+            }
+          }}
+          className="rounded-full w-16 h-16 shadow-lg bg-primary hover:bg-primary/90"
+        >
           <MessageSquare className="w-8 h-8 text-primary-foreground" />
         </Button>
       </div>
@@ -113,7 +145,16 @@ export default function Chatbot() {
                 </Avatar>
                 <CardTitle>Tư vấn viên</CardTitle>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setIsOpen(false);
+                  if (onOpenChange) {
+                    onOpenChange(false);
+                  }
+                }}
+              >
                 <X className="h-4 w-4" />
               </Button>
             </CardHeader>
