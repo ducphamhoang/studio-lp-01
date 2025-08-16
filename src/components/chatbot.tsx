@@ -127,7 +127,7 @@ export default function Chatbot({ openChat, onOpenChange }: ChatbotProps) {
               onOpenChange(true);
             }
           }}
-          className="rounded-full w-16 h-16 shadow-lg bg-primary hover:bg-primary/90"
+          className="rounded-full w-16 h-16 shadow-lg bg-primary hover:bg-primary/90 transition-all duration-300 hover:scale-110"
         >
           <MessageSquare className="w-8 h-8 text-primary-foreground" />
         </Button>
@@ -135,15 +135,15 @@ export default function Chatbot({ openChat, onOpenChange }: ChatbotProps) {
 
       {isOpen && (
         <div className="fixed bottom-4 right-4 z-50 w-[calc(100vw-2rem)] max-w-md">
-          <Card className="shadow-2xl flex flex-col h-[70vh]">
-            <CardHeader className="flex flex-row items-center justify-between border-b">
+          <Card className="shadow-2xl flex flex-col h-[70vh] bg-white/10 backdrop-blur-sm border border-primary/10 rounded-2xl">
+            <CardHeader className="flex flex-row items-center justify-between border-b border-primary/10 bg-primary/5 rounded-t-2xl">
               <div className="flex items-center gap-3">
                  <Avatar>
                     <AvatarFallback className="bg-primary text-primary-foreground">
                         <Bot />
                     </AvatarFallback>
                 </Avatar>
-                <CardTitle>Tư vấn viên</CardTitle>
+                <CardTitle className="font-headline">Tư vấn viên</CardTitle>
               </div>
               <Button
                 variant="ghost"
@@ -154,6 +154,7 @@ export default function Chatbot({ openChat, onOpenChange }: ChatbotProps) {
                     onOpenChange(false);
                   }
                 }}
+                className="hover:bg-primary/10"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -172,10 +173,10 @@ export default function Chatbot({ openChat, onOpenChange }: ChatbotProps) {
                       {message.role === 'assistant' && <Avatar className="w-8 h-8"><AvatarFallback className="bg-primary/20 text-primary"><Bot className="w-5 h-5"/></AvatarFallback></Avatar>}
                       <div
                         className={cn(
-                          "rounded-lg px-4 py-2 max-w-[80%] whitespace-pre-wrap",
+                          "rounded-2xl px-4 py-2 max-w-[80%] whitespace-pre-wrap",
                           message.role === "user"
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted text-muted-foreground"
+                            ? "bg-primary text-primary-foreground rounded-br-none"
+                            : "bg-white/20 text-muted-foreground rounded-bl-none border border-primary/10"
                         )}
                       >
                         <p>{message.content}</p>
@@ -185,13 +186,13 @@ export default function Chatbot({ openChat, onOpenChange }: ChatbotProps) {
                           </p>
                         )}
                       </div>
-                       {message.role === 'user' && <Avatar className="w-8 h-8"><AvatarFallback>You</AvatarFallback></Avatar>}
+                       {message.role === 'user' && <Avatar className="w-8 h-8"><AvatarFallback className="bg-accent text-accent-foreground">You</AvatarFallback></Avatar>}
                     </div>
                   ))}
                   {isLoading && (
                      <div className="flex gap-2 justify-start">
                         <Avatar className="w-8 h-8"><AvatarFallback className="bg-primary/20 text-primary"><Bot className="w-5 h-5"/></AvatarFallback></Avatar>
-                        <div className="rounded-lg px-4 py-2 bg-muted text-muted-foreground flex items-center">
+                        <div className="rounded-2xl px-4 py-2 bg-white/20 text-muted-foreground flex items-center border border-primary/10 rounded-bl-none">
                             <div className="w-2 h-2 bg-foreground rounded-full animate-pulse [animation-delay:-0.3s]"></div>
                             <div className="w-2 h-2 bg-foreground rounded-full animate-pulse [animation-delay:-0.15s] mx-1"></div>
                             <div className="w-2 h-2 bg-foreground rounded-full animate-pulse"></div>
@@ -201,7 +202,7 @@ export default function Chatbot({ openChat, onOpenChange }: ChatbotProps) {
                   {messages.length <= 1 && !isLoading && (
                     <div className="grid grid-cols-2 gap-2">
                         {suggestedQuestions.map((q) => (
-                            <Button key={q} variant="outline" className="h-auto py-2 whitespace-normal text-left" onClick={() => handleSuggestedQuestion(q)}>
+                            <Button key={q} variant="outline" className="h-auto py-2 whitespace-normal text-left bg-white/10 border-primary/20 hover:bg-primary/10 rounded-2xl transition-all duration-300" onClick={() => handleSuggestedQuestion(q)}>
                                 {q}
                             </Button>
                         ))}
@@ -210,16 +211,16 @@ export default function Chatbot({ openChat, onOpenChange }: ChatbotProps) {
                 </div>
               </ScrollArea>
             </CardContent>
-            <CardFooter className="border-t p-4">
+            <CardFooter className="border-t border-primary/10 p-4 bg-white/5 rounded-b-2xl">
               <form onSubmit={handleSubmit} className="flex w-full items-center space-x-2">
                 <Input
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder="Nhập câu hỏi của bạn..."
-                  className="flex-1"
+                  className="flex-1 bg-white/10 border-primary/20 focus:border-primary focus:ring-primary rounded-full"
                   autoComplete="off"
                 />
-                <Button type="submit" size="icon" disabled={isLoading}>
+                <Button type="submit" size="icon" disabled={isLoading} className="rounded-full bg-primary hover:bg-primary/90">
                   <CornerDownLeft className="h-4 w-4" />
                 </Button>
               </form>
